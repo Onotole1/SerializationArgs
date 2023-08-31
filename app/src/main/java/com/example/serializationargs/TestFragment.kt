@@ -7,18 +7,19 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.example.serializationargs.utils.args.FragmentArgs
 import com.example.serializationargs.databinding.FragmentMainBinding
+import com.example.serializationargs.utils.args.FragmentArgs.parcelable
 
 class TestFragment : Fragment(R.layout.fragment_main) {
 
     companion object {
-        var Bundle.arg: FeedArguments? by FragmentArgs.parcelable(FeedArguments.serializer())
+        var Bundle.arg: FeedArguments? by parcelable()
     }
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         val binding = FragmentMainBinding.inflate(inflater, container, false)
 
         val arg = arguments?.arg

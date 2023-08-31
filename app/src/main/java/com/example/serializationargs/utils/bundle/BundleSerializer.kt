@@ -1,10 +1,12 @@
 @file:Suppress("EXPERIMENTAL_API_USAGE")
+@file:OptIn(ExperimentalSerializationApi::class)
 
 package com.example.serializationargs.utils.bundle
 
 import android.os.Bundle
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.StructureKind
@@ -12,10 +14,25 @@ import kotlinx.serialization.encoding.AbstractDecoder
 import kotlinx.serialization.encoding.AbstractEncoder
 import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.encoding.CompositeEncoder
+import kotlinx.serialization.modules.EmptySerializersModule
 import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.serializer
+import kotlin.reflect.KType
+
+inline fun <reified T> Bundle.fromBundle(): T =
+    fromBundle(EmptySerializersModule().serializer())
+
+@Suppress("UNCHECKED_CAST")
+fun <T> Bundle.fromBundle(type: KType): T =
+    fromBundle(EmptySerializersModule().serializer(type) as KSerializer<T>)
 
 fun <T> Bundle.fromBundle(deserializer: DeserializationStrategy<T>): T =
     deserializer.deserialize(BundleDecoder(this))
+
+inline fun <reified T> T.toBundle(): Bundle = toBundle(EmptySerializersModule().serializer())
+
+@Suppress("UNCHECKED_CAST")
+fun <T> T.toBundle(type: KType): Bundle = toBundle(EmptySerializersModule().serializer(type) as KSerializer<T>)
 
 fun <T> T.toBundle(serializer: SerializationStrategy<T>): Bundle =
     Bundle(serializer.descriptor.elementsCount).also {
@@ -24,7 +41,6 @@ fun <T> T.toBundle(serializer: SerializationStrategy<T>): Bundle =
 
 private const val BUNDLE_SIZE_KEY = "\$size"
 
-@ExperimentalSerializationApi
 private class BundleDecoder(
     private val bundle: Bundle,
     private val elementsCount: Int = -1,
@@ -107,7 +123,7 @@ private class BundleEncoder(
         return super.encodeElement(descriptor, index)
     }
 
-    override val serializersModule: SerializersModule = SerializersModule { }
+    override val serializersModule: SerializersModule = EmptySerializersModule()
 
     override fun beginStructure(
         descriptor: SerialDescriptor
